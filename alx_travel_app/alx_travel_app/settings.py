@@ -10,6 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import environ
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+CHAPA_SECRET_KEY = os.getenv("CHAPA_SECRET_KEY")
+
 
 env = environ.Env()
 environ.Env.read_env()
