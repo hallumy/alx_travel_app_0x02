@@ -1,76 +1,107 @@
-# 🏡 Listings App – Django
+# 🧳 ALX Travel App 0x02 — Chapa Payment Integration
 
-The `listings` app manages property listings, bookings, and reviews for a travel rental platform.
+A Django-based travel booking platform with integrated **Chapa API** for secure payment handling, supporting **payment initiation**, **verification**, and **status tracking**.
 
----
-
-## 📁 Models
-
-### 🏘️ Listing
-
-Represents a property listed by a host.
-
-| Field           | Type         | Description                      |
-|----------------|--------------|----------------------------------|
-| `property_id`   | UUID         | Primary key                      |
-| `host`          | ForeignKey   | References `User`                |
-| `name`          | CharField    | Property name (required)         |
-| `description`   | TextField    | Property description             |
-| `location`      | CharField    | City/location (required)         |
-| `price_per_night`| DecimalField| Price per night (required)       |
-| `created_at`    | DateTimeField| Auto timestamp on creation       |
-| `updated_at`    | DateTimeField| Auto-updated on change           |
+This project is a continuation of `alx_travel_app_0x01` and adds full payment functionality using the [Chapa Payment Gateway](https://developer.chapa.co/).
 
 ---
 
-### 📅 Booking
+## 🚀 Features
 
-Tracks user bookings on listings.
-
-| Field         | Type         | Description                          |
-|--------------|--------------|--------------------------------------|
-| `booking_id` | UUID         | Primary key                          |
-| `property`   | ForeignKey   | References `Listing`                 |
-| `user`       | ForeignKey   | References `User`                    |
-| `start_date` | DateField    | Start of booking                     |
-| `end_date`   | DateField    | End of booking                       |
-| `total_price`| DecimalField | Total cost for the stay              |
-| `status`     | ChoiceField  | One of: `pending`, `confirmed`, `canceled` |
-| `created_at` | DateTimeField| Auto timestamp on creation           |
+- ✅ Secure Payment Integration with **Chapa**
+- ✅ Booking with automatic **transaction reference generation**
+- ✅ API endpoints for:
+  - Payment initiation
+  - Payment verification
+- ✅ Payment status tracking: Pending / Completed / Failed
+- ✅ Confirmation email sending (via Celery)
+- ✅ Uses Chapa's **sandbox** for testing payments
 
 ---
 
-### ⭐ Review
+## 📁 Project Structure
 
-Captures user feedback on listings.
+alx_travel_app_0x02/
+├── listings/
+│ ├── models.py # Payment model
+│ ├── views.py # API views for payments
+│ ├── urls.py # Endpoint routing
+│ ├── tasks.py # Celery task for confirmation email
+├── templates/
+│ └── payment_success.html # Simple success page
+├── .env # Store CHAPA_SECRET_KEY securely
+├── README.md # You're here
 
-| Field        | Type         | Description                           |
-|-------------|--------------|---------------------------------------|
-| `review_id` | UUID         | Primary key                           |
-| `property`  | ForeignKey   | References `Listing`                  |
-| `user`      | ForeignKey   | References `User`                     |
-| `rating`    | IntegerField | Rating from 1 to 5                    |
-| `comment`   | TextField    | User's written review                 |
-| `created_at`| DateTimeField| Auto timestamp on creation            |
 
 ---
 
-## 🔧 Seed Command
+## 🔐 Environment Variables
 
-### What is it?
+Create a `.env` file in the project root with:
 
-A Django custom management command that populates the database with **sample listings** for development and testing.
+```env
+CHAPA_SECRET_KEY=your_chapa_test_secret_key
 
-What It Does
+    Get this from your Chapa developer dashboard
 
-Creates a default host user (hostuser) if not already present.
+    .
 
-Adds 5 sample listings with:
+🔌 API Endpoints
+🔁 Initiate Payment
 
-Random titles
+URL: /api/initiate-payment/
+Method: POST
 
-Descriptions
+Payload:
 
-Locations (e.g. New York, SF)
+{
+  "amount": "100",
+  "email": "test@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "phone_number": "0912345678"
+}
 
-Random price per night
+Response:
+
+{
+  "checkout_url": "https://checkout.chapa.co/...",
+  "booking_reference": "a57f7e8c-..."
+}
+
+✅ Verify Payment
+
+URL: /api/verify-payment/?tx_ref=<tx_ref>
+Method: GET
+
+Response:
+
+{
+  "message": "Payment success"
+}
+
+💻 Payment Success Page
+
+URL: /payment-success/?tx_ref=<tx_ref>
+User is redirected here after completing payment on Chapa.
+🧪 Testing Payments (Sandbox)
+
+Use Chapa's sandbox with the following test card:
+
+Card Number: 5399 8383 8383 8381
+CVV: 470
+Expiry: 10/30
+PIN: 1234
+OTP: 123456
+
+Steps:
+
+    Call /api/initiate-payment/
+
+    Visit checkout_url
+
+    Use the test card
+
+    Complete payment
+
+    Call /api/verify-payment/ to confirm and update status
